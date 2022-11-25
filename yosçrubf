@@ -1,0 +1,154 @@
+
+# import all required frameworks
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+import time
+
+maxCnt = 10
+#path="C:\\Users\\jordan.santos\\Documents\\test do test"
+#inicialization of webdriver for Firefox Browser
+driver = webdriver.Chrome()
+
+def realizaLogin():
+
+    driver.get("https://dsvdigital.prefeitura.sp.gov.br/#/login")
+    element = driver.find_element(By.XPATH, "/html/body/div/div/div/div[2]/div/div/div/div[2]/div/div/form/div[1]/input")
+    element.clear()
+    element.send_keys("35237331000124")
+    element = driver.find_element(By.XPATH, "/html/body/div/div/div/div[2]/div/div/div/div[2]/div/div/form/div[2]/input")
+    element.send_keys("aqui@MOTTU")
+    element.send_keys(Keys.RETURN)
+
+#finding elements for cnt control
+    time.sleep(1)
+    cabecario = driver.find_element(By.XPATH, "/html/body/div/div/div/div[2]/div[2]/div/div/div/div/div/div/div[1]/h3")
+    cnt = 0
+    while cabecario != "Seleção de veículo":
+        time.sleep(1)
+        cabecario = driver.find_element(By.XPATH, "/html/body/div/div/div/div[2]/div[2]/div/div/div/div/div/div/div[1]/h3")
+        cnt += 1
+        if cnt > maxCnt:
+            #print ("funcionou a func 0")
+            
+            
+            break
+
+            #return 0
+    print ("funcionou a func#01")
+    #return 1
+    localizaRenavam("1319749400")
+
+def localizaRenavam(renavam):
+    if renavam.startswith('0'):
+        renavam = str(int(renavam))
+
+    time.sleep(2)
+
+    element = driver.find_element(By.ID, "txtSearchRenavam")
+    element.clear()
+    element.send_keys(renavam)
+    element = driver.find_element(By.ID, "btnLupa")
+    element.click()
+    time.sleep(2)
+    element = driver.find_element(By.XPATH, "/html/body/div/div/div/div[2]/div[2]/div/div/div/div/div/div/div[3]/div/table/tbody/tr/td[5]/button")
+    element.click()
+    time.sleep(3)
+    cabecario = driver.find_element(By.XPATH, "/html/body/div/div/div/div[2]/div[2]/div[1]/div/div/div/div[1]/div/h3")
+    cnt = 0
+    
+    while cabecario != "Lista de Infrações":
+        time.sleep(1)
+        cabecario = driver.find_element(By.XPATH, "/html/body/div/div/div/div[2]/div[2]/div[1]/div/div/div/div[1]/div/h3")
+        cnt += 1
+        if cnt > maxCnt:
+            return 0
+        print("Agora inicia a fnç clickBtn")
+        #clickBtnPesquisarDetalhesIndicacao("JVB50691816")
+        clickBtnPesquisarAit("JVB50691816")
+    print("este printo nao passou pelo seu IF")
+
+#Escolhe AIT referente a infração para clicar em: "Detalhes indicação de condutor"
+def clickBtnPesquisarDetalhesIndicacao(ait):
+    jsCode = ("bs = document.querySelectorAll('b'); " + "for(var i = 0; i< bs.length; i++){ " + "    x = bs[i]; " + "    if(x.innerText == 'A.I.T.:') { " + "        parNode = x.parentNode; " + "        if(parNode.innerText.includes('" + ait + "')) { " + "           while(parNode.className != 'row') { " + "                parNode = parNode.parentNode;  " + "           }" + "           break;" + "        }" + "    }" + "}" + "btns = parNode.querySelectorAll('a.btn-lista-autuacao'); " + "for(var i = 0; i < btns.length; i++) { " + "   b = btns[i]; " + "   if(b.innerText.includes('Detalhes Indicação de Condutor')) {" + "       b.click(); " + "   }" + "}" + "return 1;")
+    # This so called "ret" is used to inject js direct into browser from python utilizing selenium
+    ret = driver.execute_script(jsCode)
+    print("E/STE MUST SAIR!  => ret = r.dom(jsCode)")
+
+    #Modal
+    time.sleep(1)
+    cabecario = driver.find_element(By.XPATH, "/html/body/div/div/div/div[2]/div[2]/div[1]/div[1]/div/div/div/h3")
+    cnt = 0
+
+    while cabecario != "Consulta da Indicação de Condutor Infrator":
+        time.sleep(1)
+        cabecario = driver.find_element(By.XPATH, "/html/body/div/div/div/div[2]/div[2]/div[1]/div[1]/div/div/div/h3")
+        cnt += 1
+        if cnt % 3 == 0:
+
+            
+            ret = driver.execute_script(jsCode)   
+            
+        if cnt > maxCnt:
+            return 0
+    
+    return 3
+
+def clickBtnPesquisarAit(ait):
+
+    ret = driver.execute_script("window.rowNode = null;")   
+    ret = driver.execute_script("window.bs = document.querySelectorAll('b');") 
+    jsCode = "for(var i = 0; i< window.bs.length; i++){ x = window.bs[i]; if(x.innerText == 'A.I.T.:') { parNode = x.parentNode; if(parNode.innerText.includes('" + ait + "') ) { while(parNode.className != 'row') { parNode = parNode.parentNode; if(parNode.className == 'row') window.rowNode = parNode; }  break; } } }"
+    ret = driver.execute_script(jsCode)
+    ret = driver.execute_script('if(window.rowNode == null){ return 2; } else { return 1; }')
+
+    print("passou por aqui 1?")
+
+    if ret == '2':
+        print("passou por aqui 2?")
+        return 0
+
+    jsCode = "btns = window.rowNode.querySelectorAll('button.btn-lista-autuacao'); for(var i = 0; i < btns.length; i++) { b = btns[i]; if(b.innerText == 'Indicar Condutor Infrator') { b.click(); } }"
+    print("passou por aqui 3?")
+    ret = driver.execute_script(jsCode)
+    print("passou por aqui 4?")
+
+
+
+    # Modal
+    time.sleep(1)
+    cabecario = driver.find_element(By.ID, "h4.modal-title")
+    cnt = 0
+
+    while cabecario != "Procedimento para a indicação de condutor infrator":
+        time.sleep(1)
+        cabecario = driver.find_element(By.XPATH, "h4.modal-title")
+        cnt += 1
+        if cnt % 3 == 0:
+            ret = driver.execute_script('if(window.rowNode == null) return 0;')
+            if ret == '0':
+                return 0
+            ret = driver.execute_script(jsCode)
+        if cnt > maxCnt:
+            return 0
+
+    return 1
+
+def verificaStatusIndicacao():
+    print ("Hi! im just waiting to be populated")
+
+
+
+
+def dowloadFormulario(renavam, ait, folder):
+    driver.get("https://dsvdigital.prefeitura.sp.gov.br/#/app/selecaorenavampj")
+    if (localizaRenavam(renavam) == 0):    
+        return 0
+
+    clickBtnPesquisarDetalhesIndicacao(ait)
+
+    element = driver.find_element(By.XPATH, "button.col-lg-3.col-sm-3.btn.btn-warn.m-b")
+    element.click()
+    time.sleep(4)
+
+realizaLogin()
